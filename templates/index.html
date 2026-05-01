@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>연세대 미래캠퍼스 졸업요건 체커</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Pretendard', 'Apple SD Gothic Neo', sans-serif;
+      background: #f0f4ff;
+      min-height: 100vh;
+      padding: 40px 20px;
+      color: #1a1a2e;
+    }
+
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 36px;
+    }
+    header h1 {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: #003366;
+    }
+    header p {
+      margin-top: 8px;
+      color: #555;
+      font-size: 0.95rem;
+    }
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 28px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      margin-bottom: 24px;
+    }
+
+    .card h2 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+      color: #003366;
+      border-left: 4px solid #003366;
+      padding-left: 10px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: #333;
+    }
+
+    select, input[type="number"], textarea {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid #dde3f0;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      margin-bottom: 16px;
+      outline: none;
+      transition: border-color 0.2s;
+      background: #fafbff;
+    }
+    select:focus, input:focus, textarea:focus {
+      border-color: #003366;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    .hint {
+      font-size: 0.8rem;
+      color: #888;
+      margin-top: -12px;
+      margin-bottom: 16px;
+    }
+
+    .checkbox-group {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+    .checkbox-group label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .checkbox-group input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: #003366;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 14px;
+      background: #003366;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn:hover { background: #002244; }
+
+    /* 결과 카드 */
+    #result { display: none; }
+
+    .progress-bar-wrap {
+      background: #e8edf5;
+      border-radius: 99px;
+      height: 18px;
+      overflow: hidden;
+      margin: 12px 0 6px;
+    }
+    .progress-bar {
+      height: 100%;
+      border-radius: 99px;
+      background: linear-gradient(90deg, #003366, #0066cc);
+      transition: width 0.8s ease;
+    }
+
+    .check-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 14px 0;
+      border-bottom: 1px solid #f0f0f0;
+      gap: 12px;
+    }
+    .check-item:last-child { border-bottom: none; }
+
+    .check-label {
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    .check-detail {
+      font-size: 0.82rem;
+      color: #666;
+      margin-top: 4px;
+      line-height: 1.5;
+    }
+    .check-detail .missing {
+      color: #cc3300;
+      font-weight: 500;
+    }
+
+    .badge {
+      padding: 4px 12px;
+      border-radius: 99px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .badge.ok { background: #e6f4ea; color: #1a7a3a; }
+    .badge.fail { background: #fdecea; color: #c0392b; }
+
+    .final-result {
+      text-align: center;
+      padding: 20px;
+      border-radius: 12px;
+      margin-top: 8px;
+      font-size: 1.1rem;
+      font-weight: 800;
+    }
+    .final-result.pass { background: #e6f4ea; color: #1a7a3a; }
+    .final-result.fail { background: #fdecea; color: #c0392b; }
+
+    .warning {
+      font-size: 0.78rem;
+      color: #888;
+      text-align: center;
+      margin-top: 12px;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🎓 연세대 미래캠퍼스<br>졸업요건 체커</h1>
+    <p>이수 과목을 입력하면 졸업 가능 여부를 자동으로 계산해드립니다</p>
+  </header>
+
+  <!-- 입력 폼 -->
+  <div class="card">
+    <h2>📝 정보 입력</h2>
+
+    <label for="major">전공 선택</label>
+    <select id="major">
+      {% for major in majors %}
+        <option value="{{ major }}">{{ major }}</option>
+      {% endfor %}
+    </select>
+
+    <label for="total_credits">총 이수학점</label>
+    <input type="number" id="total_credits" placeholder="예: 95" min="0" max="200"/>
+
+    <label for="courses">이수 완료 과목명</label>
+    <textarea id="courses" placeholder="예: 컴퓨팅사고, 파이썬프로그래밍, 자료구조, 채플, 글쓰기"></textarea>
+    <p class="hint">※ 쉼표(,)로 구분해서 입력해 주세요</p>
+
+    <label>졸업인증 취득 여부</label>
+    <div class="checkbox-group">
+      <label>
+        <input type="checkbox" id="foreign_lang_cert"/>
+        외국어인증
+      </label>
+      <label>
+        <input type="checkbox" id="info_cert"/>
+        정보인증 / 산업실무역량인증
+      </label>
+    </div>
+
+    <br/>
+    <button class="btn" onclick="checkGraduation()">졸업요건 확인하기</button>
+  </div>
+
+  <!-- 결과 -->
+  <div class="card" id="result">
+    <h2>📊 확인 결과</h2>
+
+    <div style="margin-bottom:4px; font-weight:700; font-size:0.95rem; color:#003366;">
+      전체 달성률
+    </div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar" id="progress-bar" style="width:0%"></div>
+    </div>
+    <div style="text-align:right; font-size:0.85rem; color:#555; margin-bottom:20px;">
+      <span id="progress-text">0%</span>
+    </div>
+
+    <div id="check-list"></div>
+
+    <div class="final-result" id="final-result"></div>
+    <p class="warning">※ 본 결과는 참고용이며, 정확한 요건은 학교 공식 홈페이지를 확인하세요.</p>
+  </div>
+</div>
+
+<script>
+async function checkGraduation() {
+  const major = document.getElementById("major").value;
+  const total_credits = document.getElementById("total_credits").value || 0;
+  const courses = document.getElementById("courses").value;
+  const foreign_lang_cert = document.getElementById("foreign_lang_cert").checked;
+  const info_cert = document.getElementById("info_cert").checked;
+
+  const res = await fetch("/check", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ major, total_credits, courses, foreign_lang_cert, info_cert })
+  });
+
+  const data = await res.json();
+  renderResult(data);
+}
+
+function renderResult(data) {
+  document.getElementById("result").style.display = "block";
+  document.getElementById("result").scrollIntoView({ behavior: "smooth" });
+
+  // 달성률 바
+  const pct = data["전체달성률"] || 0;
+  document.getElementById("progress-bar").style.width = pct + "%";
+  document.getElementById("progress-text").innerText = pct + "%";
+
+  // 항목별 결과
+  const list = document.getElementById("check-list");
+  list.innerHTML = "";
+
+  // 총 이수학점
+  const cr = data["총이수학점"];
+  list.innerHTML += makeItem(
+    "총 이수학점",
+    `${cr.현재} / ${cr.필요}학점${!cr.충족 ? ` <span class="missing">(부족: ${cr.부족}학점)</span>` : ""}`,
+    cr.충족
+  );
+
+  // 전공필수
+  const rq = data["전공필수"];
+  const missingRq = rq.미이수.length > 0
+    ? `<span class="missing">미이수: ${rq.미이수.join(", ")}</span>`
+    : "모두 이수 완료!";
+  list.innerHTML += makeItem(
+    "전공필수 과목",
+    `이수 ${rq.이수완료.length}개 / 전체 ${rq.전체.length}개<br>${missingRq}`,
+    rq.충족
+  );
+
+  // 교양기초
+  const lb = data["교양기초"];
+  const missingLb = lb.미이수.length > 0
+    ? `<span class="missing">미이수: ${lb.미이수.join(", ")}</span>`
+    : "모두 이수 완료!";
+  list.innerHTML += makeItem(
+    "교양기초 과목",
+    `이수 ${lb.이수완료.length}개 / 전체 ${lb.전체.length}개<br>${missingLb}`,
+    lb.충족
+  );
+
+  // 졸업인증
+  const cert = data["졸업인증"];
+  const fl = cert.외국어인증.취득 ? "✅ 외국어인증" : "❌ 외국어인증";
+  const ic = cert["정보/산업실무역량인증"].취득 ? "✅ 정보/산업실무역량인증" : "❌ 정보/산업실무역량인증";
+  list.innerHTML += makeItem("졸업인증", `${fl}<br>${ic}`, cert.충족);
+
+  // 최종
+  const fin = document.getElementById("final-result");
+  if (data["졸업가능"]) {
+    fin.className = "final-result pass";
+    fin.innerText = "🎉 졸업 가능합니다!";
+  } else {
+    fin.className = "final-result fail";
+    fin.innerText = "⚠️ 아직 충족하지 못한 요건이 있습니다.";
+  }
+}
+
+function makeItem(label, detail, ok) {
+  return `
+    <div class="check-item">
+      <div>
+        <div class="check-label">${label}</div>
+        <div class="check-detail">${detail}</div>
+      </div>
+      <span class="badge ${ok ? 'ok' : 'fail'}">${ok ? '충족' : '미충족'}</span>
+    </div>`;
+}
+</script>
+</body>
+</html>
