@@ -5,189 +5,317 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>연세대 미래캠퍼스 졸업요건 체커</title>
   <style>
+    :root {
+      --bg: #f5f5f3;
+      --surface: rgba(255,255,255,0.78);
+      --surface-strong: #ffffff;
+      --text: #171717;
+      --muted: #6b6b6b;
+      --line: #dfdfda;
+      --line-strong: #c9c9c2;
+      --accent: #7a8474;
+      --accent-deep: #5d6658;
+      --success: #4d6a53;
+      --danger: #9a5b55;
+      --shadow: 0 20px 40px rgba(24,24,24,0.06);
+      --radius-xl: 28px;
+      --radius-lg: 20px;
+      --radius-md: 16px;
+    }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
+    html { -webkit-text-size-adjust: 100%; }
+
     body {
-      font-family: 'Pretendard', sans-serif;
-      background: #f3f6ff;
-      padding: 40px 20px;
-      color: #222;
+      min-height: 100vh;
+      font-family: 'Pretendard', 'SUIT', sans-serif;
+      background:
+        radial-gradient(circle at top, rgba(122,132,116,0.12), transparent 34%),
+        linear-gradient(180deg, #fbfbf9 0%, var(--bg) 100%);
+      padding: 20px 14px 40px;
+      color: var(--text);
+      line-height: 1.5;
     }
 
-    .container { max-width: 900px; margin: auto; }
+    .container {
+      width: 100%;
+      max-width: 700px;
+      margin: 0 auto;
+    }
 
     .card {
-      background: white;
-      border-radius: 16px;
-      padding: 30px;
-      margin-bottom: 24px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      background: var(--surface);
+      border: 1px solid rgba(255,255,255,0.75);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-radius: var(--radius-xl);
+      padding: 24px 18px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow);
     }
 
-    h1 { text-align: center; margin-bottom: 10px; color: #003366; }
-    .subtitle { text-align: center; color: #666; margin-bottom: 30px; }
-    label { display: block; margin-bottom: 8px; font-weight: bold; }
-    .course-section { margin-bottom: 28px; }
+    h1 {
+      text-align: center;
+      margin-bottom: 10px;
+      color: var(--text);
+      font-size: clamp(1.6rem, 5vw, 2rem);
+      font-weight: 700;
+      letter-spacing: -0.04em;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: var(--muted);
+      margin-bottom: 28px;
+      font-size: 0.95rem;
+    }
+
+    label { display: block; margin-bottom: 10px; font-weight: 600; color: var(--text); }
+
+    .course-section { margin-bottom: 32px; }
 
     .section-title {
-      font-size: 18px;
-      font-weight: bold;
-      margin-bottom: 12px;
-      color: #003366;
+      font-size: 0.98rem;
+      font-weight: 700;
+      margin-bottom: 14px;
+      color: var(--text);
+      letter-spacing: -0.02em;
     }
 
     .course-list {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
       gap: 10px;
     }
 
     .course-item {
-      background: #f7f9ff;
-      border: 1px solid #dde3f0;
-      border-radius: 10px;
-      padding: 10px;
+      background: rgba(255,255,255,0.62);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
+      font-size: 0.93rem;
+      font-weight: 500;
+      color: var(--text);
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    .course-item:has(input:checked) {
+      border-color: var(--accent);
+      background: rgba(122,132,116,0.12);
     }
 
     .course-item.track-required {
-      background: #fff8e1;
-      border-color: #f9a825;
+      border-color: #c9a84c;
+      background: rgba(201,168,76,0.08);
     }
 
-    .course-item input { width: 18px; height: 18px; }
+    .course-item.track-required:has(input:checked) {
+      background: rgba(201,168,76,0.2);
+    }
+
+    .course-item input {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--accent-deep);
+      flex: 0 0 auto;
+    }
 
     .checkbox-group {
-      display: flex;
-      gap: 20px;
+      display: grid;
+      gap: 10px;
       margin-bottom: 20px;
-      flex-wrap: wrap;
+    }
+
+    .checkbox-group label {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 0;
+      padding: 13px 15px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      background: rgba(255,255,255,0.62);
+      font-weight: 500;
+    }
+
+    .checkbox-group input {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--accent-deep);
+      flex: 0 0 auto;
     }
 
     .btn {
       width: 100%;
       padding: 15px;
       border: none;
-      border-radius: 12px;
-      background: #003366;
-      color: white;
-      font-size: 16px;
-      font-weight: bold;
+      border-radius: 999px;
+      background: var(--text);
+      color: #f8f8f6;
+      font-size: 0.98rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
       cursor: pointer;
+      transition: background 0.2s, transform 0.2s;
     }
 
-    .btn:hover { opacity: 0.9; }
+    .btn:hover { background: var(--accent-deep); transform: translateY(-1px); }
+
+    .btn-green {
+      background: #2d5a3d;
+    }
+
+    .btn-green:hover { background: #1e3d2a; }
+
+    .btn-purple {
+      background: #5a3080;
+    }
+
+    .btn-purple:hover { background: #3d2060; }
+
     #result { display: none; }
-    .result-item { padding: 14px 0; border-bottom: 1px solid #eee; }
-    .success { color: green; font-weight: bold; }
-    .fail { color: red; font-weight: bold; }
+
+    .result-item {
+      padding: 16px 0;
+      border-bottom: 1px solid var(--line);
+      color: var(--muted);
+    }
+
+    .result-item b { color: var(--text); font-size: 0.96rem; }
+
+    .success { color: var(--success); font-weight: 700; }
+    .fail { color: var(--danger); font-weight: 700; }
 
     .final-result {
-      margin-top: 20px;
-      padding: 20px;
-      border-radius: 12px;
+      margin-top: 22px;
+      padding: 18px;
+      border-radius: var(--radius-lg);
       text-align: center;
-      font-size: 20px;
-      font-weight: bold;
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
     }
 
-    .pass { background: #e6f4ea; color: #1a7a3a; }
-    .not-pass { background: #fdecea; color: #c0392b; }
+    .pass { background: rgba(77,106,83,0.12); color: var(--success); }
+    .not-pass { background: rgba(154,91,85,0.12); color: var(--danger); }
 
     select {
       width: 100%;
-      padding: 12px 14px;
-      border: 1.5px solid #dde3f0;
-      border-radius: 10px;
-      background: #fafbff;
-      font-size: 15px;
+      padding: 13px 16px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      background: rgba(255,255,255,0.8);
+      color: var(--text);
+      font-size: 0.96rem;
       margin-bottom: 20px;
       outline: none;
-      transition: border-color 0.2s;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      appearance: none;
     }
 
-    select:focus { border-color: #003366; }
+    select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px rgba(122,132,116,0.14);
+    }
 
     .credit-box {
-      background: #f7f9ff;
-      border: 1px solid #dde3f0;
-      border-radius: 12px;
-      padding: 18px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.88) 0%, rgba(255,255,255,0.66) 100%);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      padding: 22px 18px;
       text-align: center;
-      margin-bottom: 24px;
-      font-weight: bold;
+      margin-bottom: 28px;
+      font-weight: 600;
+      color: var(--muted);
     }
 
     #credit-display {
-      font-size: 28px;
-      color: #003366;
-      margin-top: 8px;
+      font-size: 2.2rem;
+      color: var(--text);
+      margin-top: 6px;
+      font-weight: 700;
+      letter-spacing: -0.05em;
     }
 
+    /* 트랙 섹션 */
     #track-section {
       display: none;
       margin-bottom: 28px;
-      border: 2px solid #e8edf8;
-      border-radius: 14px;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius-lg);
       padding: 20px;
-      background: #f7f9ff;
+      background: rgba(122,132,116,0.06);
     }
 
-    .track-desc { font-size: 13px; color: #666; margin-bottom: 14px; font-weight: normal; }
+    .track-desc { font-size: 13px; color: var(--muted); margin-bottom: 14px; font-weight: normal; }
     .track-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
 
     .track-tab {
       padding: 8px 16px;
-      border-radius: 20px;
-      border: 1.5px solid #003366;
+      border-radius: 999px;
+      border: 1.5px solid var(--accent);
       background: white;
-      color: #003366;
-      font-size: 14px;
-      font-weight: bold;
+      color: var(--accent-deep);
+      font-size: 13px;
+      font-weight: 700;
       cursor: pointer;
       transition: all 0.2s;
     }
 
-    .track-tab:hover { background: #e8edf8; }
-    .track-tab.active { background: #003366; color: white; }
-    .track-tab.none-tab { border-color: #aaa; color: #888; }
-    .track-tab.none-tab.active { background: #888; color: white; border-color: #888; }
+    .track-tab:hover { background: rgba(122,132,116,0.1); }
+    .track-tab.active { background: var(--accent-deep); color: white; border-color: var(--accent-deep); }
+    .track-tab.none-tab { border-color: var(--line-strong); color: var(--muted); }
+    .track-tab.none-tab.active { background: var(--muted); color: white; border-color: var(--muted); }
 
     .track-courses-wrap { display: none; }
     .track-courses-wrap.visible { display: block; }
 
+    /* 프로그레스 바 */
     .progress-bar-wrap {
-      background: #e0e7ff;
+      background: rgba(122,132,116,0.15);
       border-radius: 8px;
-      height: 10px;
-      margin-top: 6px;
+      height: 8px;
+      margin-top: 8px;
       overflow: hidden;
     }
 
     .progress-bar {
-      height: 10px;
-      background: #003366;
+      height: 8px;
+      background: var(--accent-deep);
       border-radius: 8px;
       transition: width 0.4s;
     }
 
+    /* 태그 */
     .tag-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
-    .tag { background: #e8edf8; color: #003366; border-radius: 8px; padding: 3px 10px; font-size: 13px; }
-    .tag.done { background: #e6f4ea; color: #1a7a3a; }
-    .tag.missing { background: #fdecea; color: #c0392b; }
 
-    .rec-card {
-      border: 2px solid #e0e7ff;
-      border-radius: 14px;
-      padding: 18px 20px;
-      margin-bottom: 16px;
+    .tag {
+      background: rgba(122,132,116,0.12);
+      color: var(--accent-deep);
+      border-radius: 8px;
+      padding: 3px 10px;
+      font-size: 13px;
     }
 
-    .rec-card.rank-1 { border-color: #f9a825; background: #fffde7; }
-    .rec-card.rank-2 { border-color: #90caf9; background: #e3f2fd; }
-    .rec-card.rank-3 { border-color: #a5d6a7; background: #f1f8e9; }
+    .tag.done { background: rgba(77,106,83,0.12); color: var(--success); }
+    .tag.missing { background: rgba(154,91,85,0.12); color: var(--danger); }
+
+    /* 트랙 추천 카드 */
+    .rec-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      padding: 18px 20px;
+      margin-bottom: 14px;
+      background: rgba(255,255,255,0.6);
+    }
+
+    .rec-card.rank-1 { border-color: #c9a84c; background: rgba(201,168,76,0.07); }
+    .rec-card.rank-2 { border-color: #7aabcf; background: rgba(122,171,207,0.07); }
+    .rec-card.rank-3 { border-color: #7aaa84; background: rgba(122,170,132,0.07); }
 
     .rec-header {
       display: flex;
@@ -198,77 +326,83 @@
       gap: 8px;
     }
 
-    .rec-title { font-size: 17px; font-weight: bold; color: #003366; }
-    .rec-pct { font-size: 22px; font-weight: bold; color: #003366; }
-    .rec-desc { font-size: 13px; color: #666; margin-bottom: 12px; }
+    .rec-title { font-size: 16px; font-weight: 700; color: var(--text); }
+    .rec-pct { font-size: 22px; font-weight: 700; color: var(--text); letter-spacing: -0.03em; }
+    .rec-desc { font-size: 13px; color: var(--muted); margin-bottom: 12px; }
 
     .rank-badge {
       display: inline-block;
       font-size: 13px;
-      font-weight: bold;
-      border-radius: 20px;
+      font-weight: 700;
+      border-radius: 999px;
       padding: 3px 12px;
       margin-right: 8px;
     }
 
-    .rank-1 .rank-badge { background: #f9a825; color: white; }
-    .rank-2 .rank-badge { background: #90caf9; color: #003366; }
-    .rank-3 .rank-badge { background: #a5d6a7; color: #1a5c2a; }
+    .rank-1 .rank-badge { background: #c9a84c; color: white; }
+    .rank-2 .rank-badge { background: #7aabcf; color: white; }
+    .rank-3 .rank-badge { background: #7aaa84; color: white; }
 
-    .rec-stat { font-size: 13px; color: #444; margin-bottom: 10px; }
+    .rec-stat { font-size: 13px; color: var(--muted); margin-bottom: 10px; }
 
-    .route-summary { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+    /* 최단 루트 */
+    .route-summary { display: flex; gap: 14px; margin-bottom: 20px; flex-wrap: wrap; }
 
     .route-stat-box {
       flex: 1;
-      min-width: 120px;
-      background: #f3f0ff;
-      border: 2px solid #c4b5fd;
-      border-radius: 12px;
+      min-width: 110px;
+      background: rgba(122,132,116,0.08);
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius-md);
       padding: 14px;
       text-align: center;
     }
 
-    .route-stat-box .num { font-size: 28px; font-weight: bold; color: #6a3093; }
-    .route-stat-box .label { font-size: 13px; color: #666; margin-top: 4px; }
+    .route-stat-box .num { font-size: 26px; font-weight: 700; color: var(--text); letter-spacing: -0.04em; }
+    .route-stat-box .label { font-size: 12px; color: var(--muted); margin-top: 4px; }
 
     .route-group { margin-bottom: 20px; }
 
     .route-group-title {
-      font-size: 15px;
-      font-weight: bold;
+      font-size: 14px;
+      font-weight: 700;
       margin-bottom: 10px;
-      padding: 6px 12px;
+      padding: 5px 12px;
       border-radius: 8px;
       display: inline-block;
     }
 
-    .route-group-title.type-전공필수    { background: #dbeafe; color: #1e40af; }
-    .route-group-title.type-교양기초필수 { background: #dcfce7; color: #166534; }
-    .route-group-title.type-트랙필수    { background: #fef9c3; color: #854d0e; }
-    .route-group-title.type-트랙선택    { background: #fce7f3; color: #9d174d; }
+    .route-group-title.type-전공필수    { background: rgba(59,130,246,0.12); color: #1e40af; }
+    .route-group-title.type-교양기초필수 { background: rgba(34,197,94,0.12); color: #166534; }
+    .route-group-title.type-트랙필수    { background: rgba(201,168,76,0.15); color: #854d0e; }
+    .route-group-title.type-트랙선택    { background: rgba(168,85,247,0.12); color: #6b21a8; }
 
     .route-item {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      background: #fafbff;
-      border: 1px solid #e0e7ff;
-      border-radius: 10px;
-      padding: 10px 14px;
+      background: rgba(255,255,255,0.7);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      padding: 11px 14px;
       margin-bottom: 8px;
     }
 
-    .route-item .name { font-weight: bold; font-size: 14px; }
-    .route-item .credit { font-size: 13px; color: #6a3093; font-weight: bold; white-space: nowrap; }
-    .route-item .note { font-size: 11px; color: #999; margin-top: 2px; }
+    .route-item .name { font-weight: 600; font-size: 14px; color: var(--text); }
+    .route-item .credit { font-size: 13px; color: var(--accent-deep); font-weight: 700; white-space: nowrap; }
+    .route-item .note { font-size: 11px; color: var(--muted); margin-top: 2px; }
 
     .all-done-msg {
       text-align: center;
       padding: 30px;
-      color: #1a7a3a;
+      color: var(--success);
       font-size: 18px;
-      font-weight: bold;
+      font-weight: 700;
+    }
+
+    @media (min-width: 640px) {
+      body { padding: 32px 20px 56px; }
+      .card { padding: 30px 26px; }
     }
   </style>
 </head>
@@ -323,32 +457,32 @@
     <button class="btn" onclick="checkGraduation()">졸업요건 확인하기</button>
 
     <div id="recommend-btn-wrap" style="display:none; margin-top:12px;">
-      <button class="btn" style="background:#1a6b3a;" onclick="recommendTrack()">
+      <button class="btn btn-green" onclick="recommendTrack()">
         🔍 내 이수 과목으로 트랙 추천받기
       </button>
     </div>
 
     <div style="margin-top:12px;">
-      <button class="btn" style="background:#6a3093;" onclick="showMinRoute()">
+      <button class="btn btn-purple" onclick="showMinRoute()">
         🗺️ 졸업 최단 루트 보기
       </button>
     </div>
   </div>
 
   <div class="card" id="result">
-    <h2 style="margin-bottom:20px;">📊 결과</h2>
+    <h2 style="margin-bottom:20px; font-weight:700; letter-spacing:-0.03em;">📊 결과</h2>
     <div id="result-content"></div>
   </div>
 
   <div class="card" id="recommend-result" style="display:none;">
-    <h2 style="margin-bottom:6px;">🎯 트랙 추천 결과</h2>
-    <div style="color:#666; font-size:13px; margin-bottom:20px;">이수 과목 기준 달성률이 높은 순으로 정렬됩니다.</div>
+    <h2 style="margin-bottom:6px; font-weight:700; letter-spacing:-0.03em;">🎯 트랙 추천 결과</h2>
+    <div style="color:var(--muted); font-size:13px; margin-bottom:20px;">이수 과목 기준 달성률이 높은 순으로 정렬됩니다.</div>
     <div id="recommend-content"></div>
   </div>
 
   <div class="card" id="route-result" style="display:none;">
-    <h2 style="margin-bottom:6px;">🗺️ 졸업 최단 루트</h2>
-    <div style="color:#666; font-size:13px; margin-bottom:20px;">
+    <h2 style="margin-bottom:6px; font-weight:700; letter-spacing:-0.03em;">🗺️ 졸업 최단 루트</h2>
+    <div style="color:var(--muted); font-size:13px; margin-bottom:20px;">
       현재 이수 과목 기준, 졸업을 위해 반드시 들어야 할 최소 과목 목록입니다.
     </div>
     <div id="route-content"></div>
@@ -422,16 +556,16 @@ function renderTrackSection(tracks) {
   Object.entries(tracks).forEach(([name, data]) => {
     areaEl.innerHTML += `
       <div id="track-wrap-${name}" class="track-courses-wrap">
-        <div style="margin-bottom:10px; font-size:13px; color:#555;">${data.설명}</div>
-        <div style="margin-bottom:8px; font-weight:bold; color:#003366;">🔒 트랙 필수 (${data.필수학점}학점 이수 필요)</div>
+        <div style="margin-bottom:10px; font-size:13px; color:var(--muted);">${data.설명}</div>
+        <div style="margin-bottom:8px; font-weight:700; color:var(--text); font-size:13px;">🔒 트랙 필수 (${data.필수학점}학점 이수 필요)</div>
         <div class="course-list" style="margin-bottom:14px;">
           ${data.트랙필수.map(c => courseItemHTML(c, "track-required")).join("")}
         </div>
-        <div style="margin-bottom:8px; font-weight:bold; color:#003366;">📂 트랙 선택</div>
+        <div style="margin-bottom:8px; font-weight:700; color:var(--text); font-size:13px;">📂 트랙 선택</div>
         <div class="course-list">
           ${data.트랙선택.map(c => courseItemHTML(c)).join("")}
         </div>
-        <div style="margin-top:10px; font-size:13px; color:#888;">
+        <div style="margin-top:10px; font-size:12px; color:var(--muted);">
           * 트랙 이수: 트랙 필수 ${data.필수학점}학점 포함 총 ${data.최소이수학점}학점 이상 이수
         </div>
       </div>
@@ -461,15 +595,12 @@ function updateCredits() {
 
 async function showMinRoute() {
   const major = document.getElementById("major").value;
-
   let total_credits = 0;
   document.querySelectorAll('input[type="checkbox"][data-credit]:checked').forEach(c => {
     total_credits += parseFloat(c.dataset.credit);
   });
-
   const checked = document.querySelectorAll('input[type="checkbox"][data-credit]:checked');
   const courses = Array.from(checked).map(c => c.value);
-
   try {
     const res = await fetch("/min-route", {
       method: "POST",
@@ -490,7 +621,7 @@ function renderRoute(data) {
   el.style.display = "block";
 
   if (data.error) {
-    content.innerHTML = `<div style="color:red;">${data.error}</div>`;
+    content.innerHTML = `<div style="color:var(--danger);">${data.error}</div>`;
     el.scrollIntoView({ behavior: "smooth" });
     return;
   }
@@ -499,7 +630,7 @@ function renderRoute(data) {
     content.innerHTML = `
       <div class="all-done-msg">
         🎉 필수 이수 과목을 모두 완료했습니다!<br>
-        <span style="font-size:14px; color:#666; font-weight:normal;">졸업요건 확인하기로 최종 확인해 보세요.</span>
+        <span style="font-size:14px; color:var(--muted); font-weight:normal;">졸업요건 확인하기로 최종 확인해 보세요.</span>
       </div>`;
     el.scrollIntoView({ behavior: "smooth" });
     return;
@@ -581,7 +712,7 @@ function renderRecommend(data) {
   el.style.display = "block";
 
   if (data.message) {
-    content.innerHTML = `<div style="color:#888;">${data.message}</div>`;
+    content.innerHTML = `<div style="color:var(--muted);">${data.message}</div>`;
     el.scrollIntoView({ behavior: "smooth" });
     return;
   }
@@ -594,7 +725,7 @@ function renderRecommend(data) {
     const rank = i < 3 ? rankClass[i] : "";
     const label = i < 3 ? rankLabel[i] : `${i+1}위`;
     const pct = t["달성률"];
-    const barColor = t["이수완료"] ? "#1a7a3a" : (pct >= 60 ? "#003366" : "#aaa");
+    const barColor = t["이수완료"] ? "#4d6a53" : (pct >= 60 ? "#5d6658" : "#c9c9c2");
 
     html += `
       <div class="rec-card ${rank}">
@@ -613,20 +744,20 @@ function renderRecommend(data) {
           이수 학점: <b>${t["이수학점"]}</b> / ${t["필요학점"]}학점
           &nbsp;|&nbsp; 잔여: <b>${t["잔여학점"]}학점</b>
         </div>
-        <div style="margin-bottom:6px; font-size:13px; font-weight:bold;">🔒 트랙 필수</div>
+        <div style="margin-bottom:6px; font-size:13px; font-weight:700;">🔒 트랙 필수</div>
         <div class="tag-list" style="margin-bottom:10px;">
           ${t["트랙필수_완료"].map(c => `<span class="tag done">✓ ${c}</span>`).join("")}
           ${t["트랙필수_미이수"].map(c => `<span class="tag missing">✗ ${c}</span>`).join("")}
           ${t["트랙필수_완료"].length === 0 && t["트랙필수_미이수"].length === 0
-            ? '<span style="color:#aaa; font-size:13px;">없음</span>' : ""}
+            ? '<span style="color:var(--muted); font-size:13px;">없음</span>' : ""}
         </div>
         ${t["트랙선택_미이수"].length > 0 ? `
-        <div style="margin-bottom:6px; font-size:13px; font-weight:bold;">📂 추가 이수 가능한 트랙 선택 과목</div>
+        <div style="margin-bottom:6px; font-size:13px; font-weight:700;">📂 추가 이수 가능한 트랙 선택 과목</div>
         <div class="tag-list">
           ${t["트랙선택_완료"].map(c => `<span class="tag done">✓ ${c}</span>`).join("")}
-          ${t["트랙선택_미이수"].map(c => `<span class="tag" style="background:#f0f0f0; color:#555;">○ ${c}</span>`).join("")}
+          ${t["트랙선택_미이수"].map(c => `<span class="tag" style="background:rgba(0,0,0,0.05); color:var(--muted);">○ ${c}</span>`).join("")}
         </div>` : `
-        <div style="font-size:13px; color:#1a7a3a; font-weight:bold;">✅ 트랙 선택 과목 모두 이수 완료</div>`}
+        <div style="font-size:13px; color:var(--success); font-weight:700;">✅ 트랙 선택 과목 모두 이수 완료</div>`}
       </div>
     `;
   });
@@ -668,7 +799,7 @@ function renderResult(data) {
       <b>총 이수학점</b>
       &nbsp;${tc["충족"] ? '<span class="success">충족</span>' : '<span class="fail">미충족</span>'}
       <br>${tc["현재"]} / ${tc["필요"]} 학점
-      ${!tc["충족"] ? `&nbsp;<span style="color:#c0392b;">(${tc["부족"]}학점 부족)</span>` : ""}
+      ${!tc["충족"] ? `&nbsp;<span style="color:var(--danger);">(${tc["부족"]}학점 부족)</span>` : ""}
       <div class="progress-bar-wrap"><div class="progress-bar" style="width:${tcPct}%"></div></div>
     </div>
   `;
@@ -681,13 +812,13 @@ function renderResult(data) {
       <div class="tag-list">
         ${data["전공필수"]["이수완료"].length > 0
           ? data["전공필수"]["이수완료"].map(c => `<span class="tag done">✓ ${c}</span>`).join("")
-          : '<span style="color:#aaa">없음</span>'}
+          : '<span style="color:var(--muted)">없음</span>'}
       </div>
       <br>미이수:
       <div class="tag-list">
         ${data["전공필수"]["미이수"].length > 0
           ? data["전공필수"]["미이수"].map(c => `<span class="tag missing">✗ ${c}</span>`).join("")
-          : '<span style="color:#aaa">없음</span>'}
+          : '<span style="color:var(--muted)">없음</span>'}
       </div>
     </div>
   `;
@@ -700,7 +831,7 @@ function renderResult(data) {
       <div class="tag-list">
         ${data["교양기초"]["미이수"].length > 0
           ? data["교양기초"]["미이수"].map(c => `<span class="tag missing">✗ ${c}</span>`).join("")
-          : '<span style="color:#aaa">없음</span>'}
+          : '<span style="color:var(--muted)">없음</span>'}
       </div>
     </div>
   `;
@@ -712,7 +843,7 @@ function renderResult(data) {
       <b>전공선택</b>
       &nbsp;${es["충족"] ? '<span class="success">충족</span>' : '<span class="fail">미충족</span>'}
       <br>${es["이수학점"]} / ${es["필요학점"]} 학점
-      ${!es["충족"] ? `&nbsp;<span style="color:#c0392b;">(${es["부족"]}학점 부족)</span>` : ""}
+      ${!es["충족"] ? `&nbsp;<span style="color:var(--danger);">(${es["부족"]}학점 부족)</span>` : ""}
       <div class="progress-bar-wrap"><div class="progress-bar" style="width:${esPct}%"></div></div>
     </div>
   `;
@@ -723,14 +854,14 @@ function renderResult(data) {
       <div class="result-item">
         <b>트랙: ${t["선택트랙"]}</b>
         &nbsp;${t["충족"] ? '<span class="success">충족</span>' : '<span class="fail">미충족</span>'}
-        <br><span style="font-size:13px;color:#666;">${t["설명"]}</span>
+        <br><span style="font-size:13px; color:var(--muted);">${t["설명"]}</span>
         <br><br><b>트랙 필수</b>
         &nbsp;${t["트랙필수"]["충족"] ? '<span class="success">충족</span>' : '<span class="fail">미충족</span>'}
         <br>미이수:
         <div class="tag-list">
           ${t["트랙필수"]["미이수"].length > 0
             ? t["트랙필수"]["미이수"].map(c => `<span class="tag missing">✗ ${c}</span>`).join("")
-            : '<span style="color:#aaa">없음</span>'}
+            : '<span style="color:var(--muted)">없음</span>'}
         </div>
         <br><b>트랙 총 이수학점</b>: ${t["총이수학점"]} / ${t["필요최소학점"]} 학점
         <div class="progress-bar-wrap">
