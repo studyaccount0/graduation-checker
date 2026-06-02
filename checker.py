@@ -192,7 +192,15 @@ class GraduationChecker:
 
         return {"tracks": results}
 
-    def check(self, major, completed_courses, total_credits, foreign_lang_cert, info_cert, selected_track=None):
+    def check(
+        self,
+        major,
+        completed_courses,
+        total_credits,
+        foreign_lang_cert,
+        info_cert,
+        selected_track=None
+    ):
         if major not in self.majors:
             return {"error": "존재하지 않는 전공입니다."}
 
@@ -303,3 +311,7 @@ class GraduationChecker:
             checks.append(track_satisfied)
 
         fulfilled = sum(checks)
+        result["전체달성률"] = round((fulfilled / len(checks)) * 100)
+        result["졸업가능"] = all(checks)
+
+        return result
