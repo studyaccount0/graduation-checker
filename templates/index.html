@@ -461,9 +461,15 @@ function updateCredits() {
 
 async function showMinRoute() {
   const major = document.getElementById("major").value;
-  const total_credits = parseFloat(document.getElementById("credit-display").innerText);
+
+  let total_credits = 0;
+  document.querySelectorAll('input[type="checkbox"][data-credit]:checked').forEach(c => {
+    total_credits += parseFloat(c.dataset.credit);
+  });
+
   const checked = document.querySelectorAll('input[type="checkbox"][data-credit]:checked');
   const courses = Array.from(checked).map(c => c.value);
+
   try {
     const res = await fetch("/min-route", {
       method: "POST",
