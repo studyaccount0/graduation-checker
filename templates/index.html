@@ -40,8 +40,14 @@
 
     .container {
       width: 100%;
-      max-width: 700px;
+      max-width: 1480px;
       margin: 0 auto;
+    }
+
+    .app-shell {
+      display: grid;
+      gap: 16px;
+      align-items: start;
     }
 
     .card {
@@ -53,6 +59,17 @@
       padding: 24px 18px;
       margin-bottom: 16px;
       box-shadow: var(--shadow);
+    }
+
+    .results-stack {
+      display: grid;
+      gap: 16px;
+    }
+
+    #result,
+    #recommend-result,
+    #route-result {
+      scroll-margin-top: 20px;
     }
 
     h1 {
@@ -74,6 +91,11 @@
     label { display: block; margin-bottom: 10px; font-weight: 600; color: var(--text); }
 
     .course-section { margin-bottom: 32px; }
+
+    .courses-grid {
+      display: grid;
+      gap: 16px;
+    }
 
     .section-title {
       font-size: 0.98rem;
@@ -130,6 +152,11 @@
       margin-bottom: 20px;
     }
 
+    .action-grid {
+      display: grid;
+      gap: 12px;
+    }
+
     .checkbox-group label {
       display: flex;
       align-items: center;
@@ -180,7 +207,7 @@
     #result { display: none; }
 
     .result-item {
-      padding: 16px 0;
+      padding: 14px 0;
       border-bottom: 1px solid var(--line);
       color: var(--muted);
     }
@@ -202,6 +229,38 @@
 
     .pass { background: rgba(77,106,83,0.12); color: var(--success); }
     .not-pass { background: rgba(154,91,85,0.12); color: var(--danger); }
+
+    .result-grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    .result-meta {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      margin-bottom: 4px;
+    }
+
+    .meta-box {
+      background: rgba(255,255,255,0.62);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+    }
+
+    .meta-box .meta-label {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .meta-box .meta-value {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.03em;
+    }
 
     select {
       width: 100%;
@@ -403,14 +462,52 @@
     @media (min-width: 640px) {
       body { padding: 32px 20px 56px; }
       .card { padding: 30px 26px; }
+      .courses-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .action-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (min-width: 1100px) {
+      body { padding: 24px 24px 40px; }
+      .app-shell { grid-template-columns: minmax(560px, 0.95fr) minmax(480px, 0.85fr); }
+      .controls-card {
+        margin-bottom: 0;
+      }
+      .card { padding: 22px 20px; }
+      .subtitle { margin-bottom: 20px; }
+      .credit-box { padding: 16px 14px; margin-bottom: 20px; }
+      #credit-display { font-size: 2rem; }
+      .course-section { margin-bottom: 0; }
+      .courses-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .course-list { grid-template-columns: repeat(auto-fill, minmax(165px, 1fr)); gap: 8px; }
+      .course-item {
+        padding: 9px 11px;
+        font-size: 0.86rem;
+        gap: 8px;
+        align-items: flex-start;
+      }
+      .course-item input { width: 16px; height: 16px; margin-top: 1px; }
+      .checkbox-group { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .checkbox-group label { padding: 11px 12px; font-size: 0.92rem; }
+      .btn { padding: 13px 14px; font-size: 0.94rem; }
+      .result-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .result-item.track-item,
+      .result-item.cert-item,
+      .result-item.overall-item,
+      .final-result {
+        grid-column: 1 / -1;
+      }
+      .route-summary { gap: 10px; margin-bottom: 16px; }
+      .route-stat-box { padding: 12px; }
+      .route-item { padding: 9px 12px; }
+      .rec-card { padding: 16px; }
     }
   </style>
 </head>
 
 <body>
 <div class="container">
-
-  <div class="card">
+  <div class="app-shell">
+  <div class="card controls-card">
     <h1>🎓 연세대 미래캠퍼스 졸업요건 체커</h1>
     <div class="subtitle">전공을 선택하고 이수한 과목을 체크하세요</div>
 
@@ -433,19 +530,21 @@
       <div id="credit-display">0</div>
     </div>
 
-    <div class="course-section">
-      <div class="section-title">📘 전공필수 과목</div>
-      <div id="major-course-list" class="course-list"></div>
-    </div>
+    <div class="courses-grid">
+      <div class="course-section">
+        <div class="section-title">📘 전공필수 과목</div>
+        <div id="major-course-list" class="course-list"></div>
+      </div>
 
-    <div class="course-section">
-      <div class="section-title">📗 교양기초 과목</div>
-      <div id="lib-course-list" class="course-list"></div>
-    </div>
+      <div class="course-section">
+        <div class="section-title">📗 교양기초 과목</div>
+        <div id="lib-course-list" class="course-list"></div>
+      </div>
 
-    <div class="course-section">
-      <div class="section-title">📙 전공선택 과목</div>
-      <div id="elective-course-list" class="course-list"></div>
+      <div class="course-section">
+        <div class="section-title">📙 전공선택 과목</div>
+        <div id="elective-course-list" class="course-list"></div>
+      </div>
     </div>
 
     <label>졸업인증</label>
@@ -454,40 +553,44 @@
       <label><input type="checkbox" id="info_cert"> 정보/산업실무역량인증</label>
     </div>
 
-    <button class="btn" onclick="checkGraduation()">졸업요건 확인하기</button>
+    <div class="action-grid">
+      <button class="btn" onclick="checkGraduation()">졸업요건 확인하기</button>
 
-    <div id="recommend-btn-wrap" style="display:none; margin-top:12px;">
-      <button class="btn btn-green" onclick="recommendTrack()">
-        🔍 내 이수 과목으로 트랙 추천받기
-      </button>
+      <div id="recommend-btn-wrap" style="display:none;">
+        <button class="btn btn-green" onclick="recommendTrack()">
+          🔍 내 이수 과목으로 트랙 추천받기
+        </button>
+      </div>
+
+      <div>
+        <button class="btn btn-purple" onclick="showMinRoute()">
+          🗺️ 졸업 최단 루트 보기
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="results-stack">
+    <div class="card" id="result">
+      <h2 style="margin-bottom:20px; font-weight:700; letter-spacing:-0.03em;">📊 결과</h2>
+      <div id="result-content"></div>
     </div>
 
-    <div style="margin-top:12px;">
-      <button class="btn btn-purple" onclick="showMinRoute()">
-        🗺️ 졸업 최단 루트 보기
-      </button>
+    <div class="card" id="recommend-result" style="display:none;">
+      <h2 style="margin-bottom:6px; font-weight:700; letter-spacing:-0.03em;">🎯 트랙 추천 결과</h2>
+      <div style="color:var(--muted); font-size:13px; margin-bottom:20px;">이수 과목 기준 달성률이 높은 순으로 정렬됩니다.</div>
+      <div id="recommend-content"></div>
+    </div>
+
+    <div class="card" id="route-result" style="display:none;">
+      <h2 style="margin-bottom:6px; font-weight:700; letter-spacing:-0.03em;">🗺️ 졸업 최단 루트</h2>
+      <div style="color:var(--muted); font-size:13px; margin-bottom:20px;">
+        현재 이수 과목 기준, 졸업을 위해 반드시 들어야 할 최소 과목 목록입니다.
+      </div>
+      <div id="route-content"></div>
     </div>
   </div>
-
-  <div class="card" id="result">
-    <h2 style="margin-bottom:20px; font-weight:700; letter-spacing:-0.03em;">📊 결과</h2>
-    <div id="result-content"></div>
-  </div>
-
-  <div class="card" id="recommend-result" style="display:none;">
-    <h2 style="margin-bottom:6px; font-weight:700; letter-spacing:-0.03em;">🎯 트랙 추천 결과</h2>
-    <div style="color:var(--muted); font-size:13px; margin-bottom:20px;">이수 과목 기준 달성률이 높은 순으로 정렬됩니다.</div>
-    <div id="recommend-content"></div>
-  </div>
-
-  <div class="card" id="route-result" style="display:none;">
-    <h2 style="margin-bottom:6px; font-weight:700; letter-spacing:-0.03em;">🗺️ 졸업 최단 루트</h2>
-    <div style="color:var(--muted); font-size:13px; margin-bottom:20px;">
-      현재 이수 과목 기준, 졸업을 위해 반드시 들어야 할 최소 과목 목록입니다.
-    </div>
-    <div id="route-content"></div>
-  </div>
-
+</div>
 </div>
 
 <script>
@@ -496,6 +599,12 @@ let selectedTrack = null;
 
 document.getElementById("major").addEventListener("change", loadCourses);
 window.onload = loadCourses;
+
+function revealSection(el) {
+  requestAnimationFrame(() => {
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+}
 
 async function loadCourses() {
   const major = document.getElementById("major").value;
@@ -622,7 +731,7 @@ function renderRoute(data) {
 
   if (data.error) {
     content.innerHTML = `<div style="color:var(--danger);">${data.error}</div>`;
-    el.scrollIntoView({ behavior: "smooth" });
+    revealSection(el);
     return;
   }
 
@@ -632,7 +741,7 @@ function renderRoute(data) {
         🎉 필수 이수 과목을 모두 완료했습니다!<br>
         <span style="font-size:14px; color:var(--muted); font-weight:normal;">졸업요건 확인하기로 최종 확인해 보세요.</span>
       </div>`;
-    el.scrollIntoView({ behavior: "smooth" });
+    revealSection(el);
     return;
   }
 
@@ -685,7 +794,7 @@ function renderRoute(data) {
   });
 
   content.innerHTML = html;
-  el.scrollIntoView({ behavior: "smooth" });
+  revealSection(el);
 }
 
 async function recommendTrack() {
@@ -713,7 +822,7 @@ function renderRecommend(data) {
 
   if (data.message) {
     content.innerHTML = `<div style="color:var(--muted);">${data.message}</div>`;
-    el.scrollIntoView({ behavior: "smooth" });
+    revealSection(el);
     return;
   }
 
@@ -763,7 +872,7 @@ function renderRecommend(data) {
   });
 
   content.innerHTML = html;
-  el.scrollIntoView({ behavior: "smooth" });
+  revealSection(el);
 }
 
 async function checkGraduation() {
@@ -790,19 +899,41 @@ async function checkGraduation() {
 
 function renderResult(data) {
   document.getElementById("result").style.display = "block";
-  let html = "";
+  let html = `<div class="result-meta">`;
 
   const tc = data["총이수학점"];
   const tcPct = Math.min(100, Math.round((tc["현재"] / tc["필요"]) * 100));
   html += `
-    <div class="result-item">
-      <b>총 이수학점</b>
-      &nbsp;${tc["충족"] ? '<span class="success">충족</span>' : '<span class="fail">미충족</span>'}
-      <br>${tc["현재"]} / ${tc["필요"]} 학점
-      ${!tc["충족"] ? `&nbsp;<span style="color:var(--danger);">(${tc["부족"]}학점 부족)</span>` : ""}
+    <div class="meta-box">
+      <div class="meta-label">총 이수학점</div>
+      <div class="meta-value">${tc["현재"]} / ${tc["필요"]}</div>
+      <div>${tc["충족"] ? '<span class="success">충족</span>' : `<span class="fail">미충족</span> <span style="color:var(--danger);">(${tc["부족"]}학점 부족)</span>`}</div>
       <div class="progress-bar-wrap"><div class="progress-bar" style="width:${tcPct}%"></div></div>
     </div>
   `;
+
+  const es = data["전공선택"];
+  const esPct = Math.min(100, es["필요학점"] > 0 ? Math.round((es["이수학점"] / es["필요학점"]) * 100) : 100);
+  html += `
+    <div class="meta-box">
+      <div class="meta-label">전공선택 학점</div>
+      <div class="meta-value">${es["이수학점"]} / ${es["필요학점"]}</div>
+      <div>${es["충족"] ? '<span class="success">충족</span>' : `<span class="fail">미충족</span> <span style="color:var(--danger);">(${es["부족"]}학점 부족)</span>`}</div>
+      <div class="progress-bar-wrap"><div class="progress-bar" style="width:${esPct}%"></div></div>
+    </div>
+  `;
+
+  html += `
+    <div class="meta-box">
+      <div class="meta-label">전체 달성률</div>
+      <div class="meta-value">${data["전체달성률"]}%</div>
+      <div>${data["졸업가능"] ? '<span class="success">졸업 가능</span>' : '<span class="fail">추가 이수 필요</span>'}</div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar" style="width:${data["전체달성률"]}%"></div>
+      </div>
+    </div>
+  `;
+  html += `</div><div class="result-grid">`;
 
   html += `
     <div class="result-item">
@@ -836,8 +967,6 @@ function renderResult(data) {
     </div>
   `;
 
-  const es = data["전공선택"];
-  const esPct = Math.min(100, es["필요학점"] > 0 ? Math.round((es["이수학점"] / es["필요학점"]) * 100) : 100);
   html += `
     <div class="result-item">
       <b>전공선택</b>
@@ -851,7 +980,7 @@ function renderResult(data) {
   if (data["트랙"]) {
     const t = data["트랙"];
     html += `
-      <div class="result-item">
+      <div class="result-item track-item">
         <b>트랙: ${t["선택트랙"]}</b>
         &nbsp;${t["충족"] ? '<span class="success">충족</span>' : '<span class="fail">미충족</span>'}
         <br><span style="font-size:13px; color:var(--muted);">${t["설명"]}</span>
@@ -872,7 +1001,7 @@ function renderResult(data) {
   }
 
   html += `
-    <div class="result-item">
+    <div class="result-item cert-item">
       <b>졸업인증</b>
       &nbsp;${data["졸업인증"]["충족"] ? '<span class="success">충족</span>' : '<span class="fail">미충족</span>'}
       <br><br>
@@ -883,7 +1012,7 @@ function renderResult(data) {
   `;
 
   html += `
-    <div class="result-item">
+    <div class="result-item overall-item">
       <b>전체 달성률</b>: ${data["전체달성률"]}%
       <div class="progress-bar-wrap">
         <div class="progress-bar" style="width:${data["전체달성률"]}%"></div>
@@ -896,9 +1025,10 @@ function renderResult(data) {
       ${data["졸업가능"] ? "🎉 졸업 가능합니다!" : "⚠️ 아직 부족한 요건이 있습니다."}
     </div>
   `;
+  html += `</div>`;
 
   document.getElementById("result-content").innerHTML = html;
-  document.getElementById("result").scrollIntoView({ behavior: "smooth" });
+  revealSection(document.getElementById("result"));
 }
 </script>
 
