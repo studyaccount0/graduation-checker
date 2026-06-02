@@ -461,13 +461,14 @@ function updateCredits() {
 
 async function showMinRoute() {
   const major = document.getElementById("major").value;
+  const total_credits = parseFloat(document.getElementById("credit-display").innerText);
   const checked = document.querySelectorAll('input[type="checkbox"][data-credit]:checked');
   const courses = Array.from(checked).map(c => c.value);
   try {
     const res = await fetch("/min-route", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ major, courses, selected_track: selectedTrack })
+      body: JSON.stringify({ major, courses, selected_track: selectedTrack, total_credits })
     });
     const data = await res.json();
     renderRoute(data);
@@ -506,7 +507,7 @@ function renderRoute(data) {
       </div>
       <div class="route-stat-box">
         <div class="num">${data.총학점}</div>
-        <div class="label">남은 학점</div>
+        <div class="label">남은 총 학점</div>
       </div>
       ${data.선택트랙 ? `
       <div class="route-stat-box">
