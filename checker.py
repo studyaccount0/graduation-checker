@@ -69,7 +69,7 @@ class GraduationChecker:
             "tracks": tracks
         }
 
-    def get_minimum_route(self, major, completed_courses, selected_track=None):
+    def get_minimum_route(self, major, completed_courses, selected_track=None, total_credits=0):
         if major not in self.majors:
             return {"error": "존재하지 않는 전공입니다."}
 
@@ -130,7 +130,10 @@ class GraduationChecker:
                         })
 
         total_courses = len(route)
-        total_credits = sum(r["학점"] for r in route)
+
+        # 총이수학점 - 현재이수학점 = 남은학점
+        needed_total = req["총이수학점"]
+        remaining_total = max(0, needed_total - total_credits)
 
         grouped = {}
         for r in route:
@@ -141,7 +144,7 @@ class GraduationChecker:
 
         return {
             "총과목수": total_courses,
-            "총학점": total_credits,
+            "총학점": remaining_total,
             "선택트랙": selected_track,
             "grouped": grouped,
             "route": route
