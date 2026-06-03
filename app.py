@@ -23,14 +23,20 @@ def get_tracks(major):
     return jsonify(tracks)
 
 
+@app.route("/modules/<major>")
+def get_modules(major):
+    modules = checker.get_modules_by_major(major)
+    return jsonify(modules)
+
+
 @app.route("/min-route", methods=["POST"])
 def min_route():
     data = request.get_json()
     major = data.get("major", "")
     completed_courses = data.get("courses", [])
-    selected_track = data.get("selected_track", None)
+    selected_module = data.get("selected_module", data.get("selected_track", None))
     total_credits = float(data.get("total_credits", 0))
-    result = checker.get_minimum_route(major, completed_courses, selected_track, total_credits)
+    result = checker.get_minimum_route(major, completed_courses, selected_module, total_credits)
     return jsonify(result)
 
 
@@ -51,7 +57,7 @@ def check():
     total_credits = float(data.get("total_credits", 0))
     foreign_lang_cert = data.get("foreign_lang_cert", False)
     info_cert = data.get("info_cert", False)
-    selected_track = data.get("selected_track", None)
+    selected_module = data.get("selected_module", data.get("selected_track", None))
 
     result = checker.check(
         major=major,
@@ -59,8 +65,12 @@ def check():
         total_credits=total_credits,
         foreign_lang_cert=foreign_lang_cert,
         info_cert=info_cert,
-        selected_track=selected_track
+        selected_module=selected_module,
+        selected_track=None
     )
+    # include requested major in response to aid frontend rendering
+    if isinstance(result, dict):
+        result["전공명"] = major
     return jsonify(result)
 
 

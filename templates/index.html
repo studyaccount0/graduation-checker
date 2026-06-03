@@ -518,9 +518,9 @@
       {% endfor %}
     </select>
 
-    <div id="track-section">
-      <div class="section-title">🛤️ 트랙 선택</div>
-      <div class="track-desc">트랙을 선택하면 해당 트랙의 이수 요건도 함께 검사합니다.</div>
+    <div id="module-section">
+      <div class="section-title">🧩 모듈 선택</div>
+      <div class="track-desc">모듈형과정 이수요건: 각 모듈별 지정된 필수 교과목(*) 3개 이상, 총 9학점 이상 이수해야 합니다. 이수요건 충족 시 원주간호대학장 명의 이수증을 발급할 수 있습니다.</div>
       <div class="track-tabs" id="track-tabs"></div>
       <div id="track-courses-area"></div>
     </div>
@@ -531,9 +531,14 @@
     </div>
 
     <div class="courses-grid">
-      <div class="course-section">
-        <div class="section-title">📘 전공필수 과목</div>
-        <div id="major-course-list" class="course-list"></div>
+      <div id="major-basic-section" class="course-section">
+          <div class="section-title">📘 전공기초 과목</div>
+          <div id="major-basic-list" class="course-list"></div>
+        </div>
+
+        <div class="course-section">
+          <div class="section-title">📘 전공필수 과목</div>
+          <div id="major-course-list" class="course-list"></div>
       </div>
 
       <div class="course-section">
@@ -541,7 +546,28 @@
         <div id="lib-course-list" class="course-list"></div>
       </div>
 
-      <div class="course-section">
+      <div id="univ-required-section" class="course-section" style="display:none;">
+        <div class="section-title">📘 대학교양 필수 과목</div>
+        <div id="univ-required-list" class="course-list"></div>
+      </div>
+
+      <div id="univ-elective-section" class="course-section" style="display:none;">
+        <div class="section-title">📙 대학교양 선택 과목</div>
+        <div id="univ-elective-list" class="course-list"></div>
+      </div>
+
+      <div id="exploration-section" class="course-section" style="display:none;">
+        <div class="section-title">📙 전공탐색 과목</div>
+        <div id="exploration-required-list" class="course-list" style="margin-bottom:16px;"></div>
+        <div id="exploration-elective-list" class="course-list"></div>
+      </div>
+
+      <div id="univ-liberal-distribution" class="course-section" style="display:none;">
+        <div class="section-title">📒 대학교양 이수배정표</div>
+        <div id="univ-liberal-distribution-content" style="padding:14px; border:1px solid var(--line); border-radius:12px; background:rgba(255,255,255,0.65);"></div>
+      </div>
+
+      <div id="elective-section" class="course-section">
         <div class="section-title">📙 전공선택 과목</div>
         <div id="elective-course-list" class="course-list"></div>
       </div>
@@ -557,8 +583,8 @@
       <button class="btn" onclick="checkGraduation()">졸업요건 확인하기</button>
 
       <div id="recommend-btn-wrap" style="display:none;">
-        <button class="btn btn-green" onclick="recommendTrack()">
-          🔍 내 이수 과목으로 트랙 추천받기
+        <button class="btn btn-green" onclick="recommendModule()">
+          🔍 내 이수 과목으로 모듈 추천받기
         </button>
       </div>
 
@@ -577,7 +603,7 @@
     </div>
 
     <div class="card" id="recommend-result" style="display:none;">
-      <h2 style="margin-bottom:6px; font-weight:700; letter-spacing:-0.03em;">🎯 트랙 추천 결과</h2>
+      <h2 style="margin-bottom:6px; font-weight:700; letter-spacing:-0.03em;">🎯 모듈 추천 결과</h2>
       <div style="color:var(--muted); font-size:13px; margin-bottom:20px;">이수 과목 기준 달성률이 높은 순으로 정렬됩니다.</div>
       <div id="recommend-content"></div>
     </div>
@@ -594,8 +620,8 @@
 </div>
 
 <script>
-let allTracks = {};
-let selectedTrack = null;
+let allModules = {};
+let selectedModule = null;
 
 document.getElementById("major").addEventListener("change", loadCourses);
 window.onload = loadCourses;
@@ -610,43 +636,119 @@ async function loadCourses() {
   const major = document.getElementById("major").value;
   const res = await fetch(`/courses/${major}`);
   const courses = await res.json();
-
   document.getElementById("major-course-list").innerHTML = "";
+  document.getElementById("major-basic-list").innerHTML = "";
   document.getElementById("lib-course-list").innerHTML = "";
+  document.getElementById("univ-required-list").innerHTML = "";
+  document.getElementById("univ-elective-list").innerHTML = "";
   document.getElementById("elective-course-list").innerHTML = "";
 
   courses.major_required.forEach(course => {
     document.getElementById("major-course-list").innerHTML += courseItemHTML(course);
   });
+  // major_basic (전공기초) — 간호학과만 전공기초로 보여주고, 그 외 학과는 전공선택으로 병합
+  const basicList = (courses.major_basic || []);
+  if (major === '간호학과') {
+    basicList.forEach(course => {
+      document.getElementById("major-basic-list").innerHTML += courseItemHTML(course);
+    });
+  } else {
+    basicList.forEach(course => {
+      document.getElementById("elective-course-list").innerHTML += courseItemHTML(course);
+    });
+  }
   courses.liberal_required.forEach(course => {
     document.getElementById("lib-course-list").innerHTML += courseItemHTML(course);
+  });
+  (courses.univ_liberal_required || []).forEach(course => {
+    document.getElementById("univ-required-list").innerHTML += courseItemHTML(course);
+  });
+  (courses.univ_liberal_electives || []).forEach(course => {
+    document.getElementById("univ-elective-list").innerHTML += courseItemHTML(course);
+  });
+  (courses.exploration_required || []).forEach(course => {
+    document.getElementById("exploration-required-list").innerHTML += courseItemHTML(course);
+  });
+  (courses.exploration_electives || []).forEach(course => {
+    document.getElementById("exploration-elective-list").innerHTML += courseItemHTML(course);
   });
   (courses.major_electives || []).forEach(course => {
     document.getElementById("elective-course-list").innerHTML += courseItemHTML(course);
   });
 
-  allTracks = courses.tracks || {};
-  selectedTrack = null;
-  renderTrackSection(allTracks);
+  document.getElementById("univ-required-section").style.display = (courses.univ_liberal_required || []).length > 0 ? 'block' : 'none';
+  document.getElementById("univ-elective-section").style.display = (courses.univ_liberal_electives || []).length > 0 ? 'block' : 'none';
+  document.getElementById("exploration-section").style.display = ((courses.exploration_required || []).length > 0 || (courses.exploration_electives || []).length > 0) ? 'block' : 'none';
+
+  const dist = courses.univ_liberal_distribution || [];
+  const distMin = courses.univ_liberal_dist_min_areas || 0;
+  if (dist.length > 0) {
+    document.getElementById("univ-liberal-distribution").style.display = 'block';
+    document.getElementById("univ-liberal-distribution-content").innerHTML = `
+      <div style="font-size:14px; margin-bottom:10px;">아래 7개 영역 중 최소 ${distMin}개 영역에서 각각 1과목 이상 선택하여 이수해야 합니다.</div>
+      <div class="tag-list" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:8px;">
+        ${dist.map(area => `<span class="tag done">${area}</span>`).join("")}
+      </div>
+    `;
+  } else {
+    document.getElementById("univ-liberal-distribution").style.display = 'none';
+    document.getElementById("univ-liberal-distribution-content").innerHTML = '';
+  }
+
+  // 전공별로 모듈(간호) 또는 트랙(그외)을 구분
+  const hasModules = Object.keys(courses.modules || {}).length > 0;
+  const hasTracks = Object.keys(courses.tracks || {}).length > 0;
+  let specialKind = null;
+  if (hasModules) {
+    specialKind = '모듈';
+    allModules = courses.modules;
+  } else if (hasTracks) {
+    specialKind = '트랙';
+    allModules = courses.tracks;
+  } else {
+    allModules = {};
+  }
+  window.currentSpecialKind = specialKind;
+  selectedModule = null;
+  // 전공별로 전공기초 / 전공선택 섹션 노출 제어
+  try {
+    if (major === '간호학과') {
+      document.getElementById("major-basic-section").style.display = 'block';
+      document.getElementById("elective-section").style.display = 'none';
+    } else {
+      document.getElementById("major-basic-section").style.display = 'none';
+      document.getElementById("elective-section").style.display = 'block';
+    }
+  } catch (e) {
+    // 요소가 없으면 무시
+  }
+
+  renderModuleSection(allModules);
+  const recBtnBtn = document.querySelector('#recommend-btn-wrap button');
+  if (recBtnBtn) {
+    const kind = window.currentSpecialKind || null;
+    recBtnBtn.innerText = kind ? `🔍 내 이수 과목으로 ${kind} 추천받기` : '🔍 추천받기';
+  }
   updateCredits();
 }
 
 function courseItemHTML(course, extraClass = "") {
+  const requiredMark = course.required ? '<span class="course-required">*</span> ' : '';
   return `
     <label class="course-item ${extraClass}">
       <input type="checkbox" value="${course.name}" data-credit="${course.credit}" onchange="updateCredits()">
-      ${course.name} (${course.credit}학점)
+      ${requiredMark}${course.name} (${course.credit}학점)
     </label>
   `;
 }
 
-function renderTrackSection(tracks) {
-  const section = document.getElementById("track-section");
+function renderModuleSection(modules) {
+  const section = document.getElementById("module-section");
   const tabsEl = document.getElementById("track-tabs");
   const areaEl = document.getElementById("track-courses-area");
   const recBtn = document.getElementById("recommend-btn-wrap");
 
-  if (Object.keys(tracks).length === 0) {
+  if (Object.keys(modules).length === 0) {
     section.style.display = "none";
     recBtn.style.display = "none";
     return;
@@ -655,40 +757,54 @@ function renderTrackSection(tracks) {
   section.style.display = "block";
   recBtn.style.display = "block";
 
-  let tabHTML = `<button class="track-tab none-tab active" onclick="selectTrack(null, this)">선택 안 함</button>`;
-  Object.keys(tracks).forEach(name => {
-    tabHTML += `<button class="track-tab" onclick="selectTrack('${name}', this)">${name}</button>`;
+  // 섹션 제목 및 설명을 종류에 따라 변경
+  const titleEl = section.querySelector('.section-title');
+  const descEl = section.querySelector('.track-desc');
+  if (window.currentSpecialKind === '모듈') {
+    titleEl.innerText = '🧩 모듈 선택';
+    descEl.innerText = '듈형과정 이수요건: 각 모듈별 지정된 필수 교과목(*) 3개 이상, 총 9학점 이상 이수해야 합니다. 이수요건 충족 시 원주간호대학장 명의 이수증을 발급할 수 있습니다.';
+  } else {
+    titleEl.innerText = '🧩 트랙 선택';
+    descEl.innerText = '트랙별 최소 이수학점과 필수과목을 확인하세요.';
+  }
+
+  let tabHTML = `<button class="track-tab none-tab active" onclick="selectModule(null, this)">선택 안 함</button>`;
+  Object.keys(modules).forEach(name => {
+    tabHTML += `<button class="track-tab" onclick="selectModule('${name}', this)">${name}</button>`;
   });
   tabsEl.innerHTML = tabHTML;
 
   areaEl.innerHTML = "";
-  Object.entries(tracks).forEach(([name, data]) => {
+  Object.entries(modules).forEach(([name, data]) => {
+    const kind = window.currentSpecialKind || '모듈';
+    const reqKey = `${kind}필수`;
+    const elecKey = `${kind}선택`;
     areaEl.innerHTML += `
-      <div id="track-wrap-${name}" class="track-courses-wrap">
+      <div id="module-wrap-${name}" class="track-courses-wrap">
         <div style="margin-bottom:10px; font-size:13px; color:var(--muted);">${data.설명}</div>
-        <div style="margin-bottom:8px; font-weight:700; color:var(--text); font-size:13px;">🔒 트랙 필수 (${data.필수학점}학점 이수 필요)</div>
+        <div style="margin-bottom:8px; font-weight:700; color:var(--text); font-size:13px;">🔒 ${kind} 필수 (${data.필수학점}학점 이수 필요)</div>
         <div class="course-list" style="margin-bottom:14px;">
-          ${data.트랙필수.map(c => courseItemHTML(c, "track-required")).join("")}
+          ${ (data[reqKey]||[]).map(c => courseItemHTML(c, "track-required")).join("") }
         </div>
-        <div style="margin-bottom:8px; font-weight:700; color:var(--text); font-size:13px;">📂 트랙 선택</div>
+        <div style="margin-bottom:8px; font-weight:700; color:var(--text); font-size:13px;">📂 ${kind} 선택</div>
         <div class="course-list">
-          ${data.트랙선택.map(c => courseItemHTML(c)).join("")}
+          ${ (data[elecKey]||[]).map(c => courseItemHTML(c)).join("") }
         </div>
         <div style="margin-top:10px; font-size:12px; color:var(--muted);">
-          * 트랙 이수: 트랙 필수 ${data.필수학점}학점 포함 총 ${data.최소이수학점}학점 이상 이수
+          ${kind} 이수 조건을 확인하세요.
         </div>
       </div>
     `;
   });
 }
 
-function selectTrack(trackName, btn) {
+function selectModule(moduleName, btn) {
   document.querySelectorAll(".track-tab").forEach(t => t.classList.remove("active"));
   btn.classList.add("active");
   document.querySelectorAll(".track-courses-wrap").forEach(el => el.classList.remove("visible"));
-  selectedTrack = trackName;
-  if (trackName) {
-    const wrap = document.getElementById(`track-wrap-${trackName}`);
+  selectedModule = moduleName;
+  if (moduleName) {
+    const wrap = document.getElementById(`module-wrap-${moduleName}`);
     if (wrap) wrap.classList.add("visible");
   }
   updateCredits();
@@ -714,7 +830,7 @@ async function showMinRoute() {
     const res = await fetch("/min-route", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ major, courses, selected_track: selectedTrack, total_credits })
+      body: JSON.stringify({ major, courses, selected_module: selectedModule, total_credits })
     });
     const data = await res.json();
     renderRoute(data);
@@ -755,24 +871,25 @@ function renderRoute(data) {
         <div class="num">${data.총학점}</div>
         <div class="label">남은 총 학점</div>
       </div>
-      ${data.선택트랙 ? `
+      ${data.선택모듈 ? `
       <div class="route-stat-box">
-        <div class="num" style="font-size:16px;">${data.선택트랙}</div>
-        <div class="label">선택 트랙</div>
+        <div class="num" style="font-size:16px;">${data.선택모듈}</div>
+        <div class="label">선택 모듈</div>
       </div>` : ""}
     </div>
   `;
 
   const grouped = data.grouped;
-  const groupOrder = ["전공필수", "교양기초필수", ...Object.keys(grouped).filter(k => k.startsWith("트랙"))];
+  const groupOrder = ["전공필수", "전공탐색필수", "전공탐색선택", "교양기초필수", "대학교양필수", "대학교양선택", ...Object.keys(grouped).filter(k => k.startsWith("모듈") || k.startsWith("트랙"))];
 
   groupOrder.forEach(group => {
     if (!grouped[group]) return;
     const items = grouped[group];
     let cls = "type-전공필수";
-    if (group === "교양기초필수") cls = "type-교양기초필수";
-    else if (group.startsWith("트랙필수")) cls = "type-트랙필수";
-    else if (group.startsWith("트랙선택")) cls = "type-트랙선택";
+    if (group === "교양기초필수" || group === "대학교양필수") cls = "type-교양기초필수";
+    else if (group.startsWith("전공탐색")) cls = "type-트랙선택";
+    else if (group.startsWith("모듈필수")) cls = "type-트랙필수";
+    else if (group.startsWith("모듈선택") || group.startsWith("트랙")) cls = "type-트랙선택";
 
     const groupCredits = items.reduce((s, r) => s + r["학점"], 0);
     html += `
@@ -797,7 +914,7 @@ function renderRoute(data) {
   revealSection(el);
 }
 
-async function recommendTrack() {
+async function recommendModule() {
   const major = document.getElementById("major").value;
   const checked = document.querySelectorAll('input[type="checkbox"][data-credit]:checked');
   const courses = Array.from(checked).map(c => c.value);
@@ -830,17 +947,25 @@ function renderRecommend(data) {
   const rankClass = ["rank-1", "rank-2", "rank-3"];
   let html = "";
 
-  data.tracks.forEach((t, i) => {
+  const list = (data.modules && data.modules.length) ? data.modules : ((data.tracks && data.tracks.length) ? data.tracks : []);
+  const kind = window.currentSpecialKind || (data.modules && data.modules.length ? '모듈' : (data.tracks && data.tracks.length ? '트랙' : '모듈'));
+
+  list.forEach((t, i) => {
     const rank = i < 3 ? rankClass[i] : "";
     const label = i < 3 ? rankLabel[i] : `${i+1}위`;
     const pct = t["달성률"];
     const barColor = t["이수완료"] ? "#4d6a53" : (pct >= 60 ? "#5d6658" : "#c9c9c2");
+    const nameKey = `${kind}명`;
+    const reqDoneKey = `${kind}필수_완료`;
+    const reqMissKey = `${kind}필수_미이수`;
+    const elecDoneKey = `${kind}선택_완료`;
+    const elecMissKey = `${kind}선택_미이수`;
 
     html += `
       <div class="rec-card ${rank}">
         <div class="rec-header">
           <div class="rec-title">
-            <span class="rank-badge">${label}</span>${t["트랙명"]}
+            <span class="rank-badge">${label}</span>${t[nameKey] || t["트랙명"] || t["모듈명"]}
             ${t["이수완료"] ? '<span class="tag done" style="font-size:12px; padding:2px 8px;">✓ 이수 가능</span>' : ""}
           </div>
           <div class="rec-pct">${pct}%</div>
@@ -853,20 +978,20 @@ function renderRecommend(data) {
           이수 학점: <b>${t["이수학점"]}</b> / ${t["필요학점"]}학점
           &nbsp;|&nbsp; 잔여: <b>${t["잔여학점"]}학점</b>
         </div>
-        <div style="margin-bottom:6px; font-size:13px; font-weight:700;">🔒 트랙 필수</div>
+        <div style="margin-bottom:6px; font-size:13px; font-weight:700;">🔒 ${kind} 필수</div>
         <div class="tag-list" style="margin-bottom:10px;">
-          ${t["트랙필수_완료"].map(c => `<span class="tag done">✓ ${c}</span>`).join("")}
-          ${t["트랙필수_미이수"].map(c => `<span class="tag missing">✗ ${c}</span>`).join("")}
-          ${t["트랙필수_완료"].length === 0 && t["트랙필수_미이수"].length === 0
+          ${(t[reqDoneKey]||[]).map(c => `<span class="tag done">✓ ${c}</span>`).join("")}
+          ${(t[reqMissKey]||[]).map(c => `<span class="tag missing">✗ ${c}</span>`).join("")}
+          ${(t[reqDoneKey]||[]).length === 0 && (t[reqMissKey]||[]).length === 0
             ? '<span style="color:var(--muted); font-size:13px;">없음</span>' : ""}
         </div>
-        ${t["트랙선택_미이수"].length > 0 ? `
-        <div style="margin-bottom:6px; font-size:13px; font-weight:700;">📂 추가 이수 가능한 트랙 선택 과목</div>
+        ${(t[elecMissKey]||[]).length > 0 ? `
+        <div style="margin-bottom:6px; font-size:13px; font-weight:700;">📂 추가 이수 가능한 ${kind} 선택 과목</div>
         <div class="tag-list">
-          ${t["트랙선택_완료"].map(c => `<span class="tag done">✓ ${c}</span>`).join("")}
-          ${t["트랙선택_미이수"].map(c => `<span class="tag" style="background:rgba(0,0,0,0.05); color:var(--muted);">○ ${c}</span>`).join("")}
+          ${(t[elecDoneKey]||[]).map(c => `<span class="tag done">✓ ${c}</span>`).join("")}
+          ${(t[elecMissKey]||[]).map(c => `<span class="tag" style="background:rgba(0,0,0,0.05); color:var(--muted);">○ ${c}</span>`).join("")}
         </div>` : `
-        <div style="font-size:13px; color:var(--success); font-weight:700;">✅ 트랙 선택 과목 모두 이수 완료</div>`}
+        <div style="font-size:13px; color:var(--success); font-weight:700;">✅ ${kind} 선택 과목 모두 이수 완료</div>`}
       </div>
     `;
   });
@@ -887,7 +1012,7 @@ async function checkGraduation() {
     const res = await fetch("/check", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ major, total_credits, courses, foreign_lang_cert, info_cert, selected_track: selectedTrack })
+      body: JSON.stringify({ major, total_credits, courses, foreign_lang_cert, info_cert, selected_module: selectedModule })
     });
     const data = await res.json();
     renderResult(data);
@@ -912,16 +1037,19 @@ function renderResult(data) {
     </div>
   `;
 
-  const es = data["전공선택"];
+  const es = data["전공선택"] || { 충족: true, 이수학점: 0, 필요학점: 0, 부족: 0 };
   const esPct = Math.min(100, es["필요학점"] > 0 ? Math.round((es["이수학점"] / es["필요학점"]) * 100) : 100);
-  html += `
-    <div class="meta-box">
-      <div class="meta-label">전공선택 학점</div>
-      <div class="meta-value">${es["이수학점"]} / ${es["필요학점"]}</div>
-      <div>${es["충족"] ? '<span class="success">충족</span>' : `<span class="fail">미충족</span> <span style="color:var(--danger);">(${es["부족"]}학점 부족)</span>`}</div>
-      <div class="progress-bar-wrap"><div class="progress-bar" style="width:${esPct}%"></div></div>
-    </div>
-  `;
+  // 간호학과는 전공선택 항목이 없으므로 결과 화면에서 전공선택 박스를 숨김
+  if (data["전공명"] !== '간호학과') {
+    html += `
+      <div class="meta-box">
+        <div class="meta-label">전공선택 학점</div>
+        <div class="meta-value">${es["이수학점"]} / ${es["필요학점"]}</div>
+        <div>${es["충족"] ? '<span class="success">충족</span>' : `<span class="fail">미충족</span> <span style="color:var(--danger);">(${es["부족"]}학점 부족)</span>`}</div>
+        <div class="progress-bar-wrap"><div class="progress-bar" style="width:${esPct}%"></div></div>
+      </div>
+    `;
+  }
 
   html += `
     <div class="meta-box">
@@ -956,6 +1084,25 @@ function renderResult(data) {
 
   html += `
     <div class="result-item">
+      <b>전공기초</b>
+      &nbsp;${data["전공기초"]["충족"] ? '<span class="success">충족</span>' : '<span class="fail">미충족</span>'}
+      <br><br>이수 완료:
+      <div class="tag-list">
+        ${data["전공기초"]["이수완료"].length > 0
+          ? data["전공기초"]["이수완료"].map(c => `<span class="tag done">✓ ${c}</span>`).join("")
+          : '<span style="color:var(--muted)">없음</span>'}
+      </div>
+      <br>미이수:
+      <div class="tag-list">
+        ${data["전공기초"]["미이수"].length > 0
+          ? data["전공기초"]["미이수"].map(c => `<span class="tag missing">✗ ${c}</span>`).join("")
+          : '<span style="color:var(--muted)">없음</span>'}
+      </div>
+    </div>
+  `;
+
+  html += `
+    <div class="result-item">
       <b>교양기초</b>
       &nbsp;${data["교양기초"]["충족"] ? '<span class="success">충족</span>' : '<span class="fail">미충족</span>'}
       <br><br>미이수:
@@ -967,37 +1114,116 @@ function renderResult(data) {
     </div>
   `;
 
-  html += `
-    <div class="result-item">
-      <b>전공선택</b>
-      &nbsp;${es["충족"] ? '<span class="success">충족</span>' : '<span class="fail">미충족</span>'}
-      <br>${es["이수학점"]} / ${es["필요학점"]} 학점
-      ${!es["충족"] ? `&nbsp;<span style="color:var(--danger);">(${es["부족"]}학점 부족)</span>` : ""}
-      <div class="progress-bar-wrap"><div class="progress-bar" style="width:${esPct}%"></div></div>
-    </div>
-  `;
-
-  if (data["트랙"]) {
-    const t = data["트랙"];
+  if (data["대학교양"]) {
     html += `
-      <div class="result-item track-item">
-        <b>트랙: ${t["선택트랙"]}</b>
-        &nbsp;${t["충족"] ? '<span class="success">충족</span>' : '<span class="fail">미충족</span>'}
-        <br><span style="font-size:13px; color:var(--muted);">${t["설명"]}</span>
-        <br><br><b>트랙 필수</b>
-        &nbsp;${t["트랙필수"]["충족"] ? '<span class="success">충족</span>' : '<span class="fail">미충족</span>'}
+      <div class="result-item">
+        <b>대학교양 필수</b>
+        &nbsp;${data["대학교양"]["필수"]["충족"] ? '<span class="success">충족</span>' : '<span class="fail">미충족</span>'}
         <br>미이수:
         <div class="tag-list">
-          ${t["트랙필수"]["미이수"].length > 0
-            ? t["트랙필수"]["미이수"].map(c => `<span class="tag missing">✗ ${c}</span>`).join("")
+          ${data["대학교양"]["필수"]["미이수"].length > 0
+            ? data["대학교양"]["필수"]["미이수"].map(c => `<span class="tag missing">✗ ${c}</span>`).join("")
             : '<span style="color:var(--muted)">없음</span>'}
-        </div>
-        <br><b>트랙 총 이수학점</b>: ${t["총이수학점"]} / ${t["필요최소학점"]} 학점
-        <div class="progress-bar-wrap">
-          <div class="progress-bar" style="width:${Math.min(100, Math.round((t["총이수학점"] / t["필요최소학점"]) * 100))}%"></div>
         </div>
       </div>
     `;
+
+    html += `
+      <div class="result-item">
+        <b>대학교양 선택</b>
+        &nbsp;${data["대학교양"]["선택"]["충족"] ? '<span class="success">충족</span>' : '<span class="fail">미충족</span>'}
+        <br>${data["대학교양"]["선택"]["이수학점"]} / ${data["대학교양"]["선택"]["필요학점"]} 학점
+        ${!data["대학교양"]["선택"]["충족"] ? `&nbsp;<span style="color:var(--danger);">(${data["대학교양"]["선택"]["부족"]}학점 부족)</span>` : ""}
+        <div class="progress-bar-wrap"><div class="progress-bar" style="width:${Math.min(100, data["대학교양"]["선택"]["필요학점"] > 0 ? Math.round((data["대학교양"]["선택"]["이수학점"] / data["대학교양"]["선택"]["필요학점"]) * 100) : 100)}%"></div></div>
+      </div>
+    `;
+  }
+
+  if (data["전공탐색"]) {
+    html += `
+      <div class="result-item">
+        <b>전공탐색 필수</b>
+        &nbsp;${data["전공탐색"]["필수"]["충족"] ? '<span class="success">충족</span>' : '<span class="fail">미충족</span>'}
+        <br>미이수:
+        <div class="tag-list">
+          ${data["전공탐색"]["필수"]["미이수"].length > 0
+            ? data["전공탐색"]["필수"]["미이수"].map(c => `<span class="tag missing">✗ ${c}</span>`).join("")
+            : '<span style="color:var(--muted)">없음</span>'}
+        </div>
+      </div>
+    `;
+
+    html += `
+      <div class="result-item">
+        <b>전공탐색 선택</b>
+        &nbsp;${data["전공탐색"]["선택"]["충족"] ? '<span class="success">충족</span>' : '<span class="fail">미충족</span>'}
+        <br>${data["전공탐색"]["선택"]["이수학점"]} / ${data["전공탐색"]["선택"]["필요학점"]} 학점
+        ${!data["전공탐색"]["선택"]["충족"] ? `&nbsp;<span style="color:var(--danger);">(${data["전공탐색"]["선택"]["부족"]}학점 부족)</span>` : ""}
+        <div class="progress-bar-wrap"><div class="progress-bar" style="width:${Math.min(100, data["전공탐색"]["선택"]["필요학점"] > 0 ? Math.round((data["전공탐색"]["선택"]["이수학점"] / data["전공탐색"]["선택"]["필요학점"]) * 100) : 100)}%"></div></div>
+      </div>
+    `;
+  }
+
+  if (data["전공명"] !== '간호학과') {
+    html += `
+      <div class="result-item">
+        <b>전공선택</b>
+        &nbsp;${es["충족"] ? '<span class="success">충족</span>' : '<span class="fail">미충족</span>'}
+        <br>${es["이수학점"]} / ${es["필요학점"]} 학점
+        ${!es["충족"] ? `&nbsp;<span style="color:var(--danger);">(${es["부족"]}학점 부족)</span>` : ""}
+        <div class="progress-bar-wrap"><div class="progress-bar" style="width:${esPct}%"></div></div>
+      </div>
+    `;
+  }
+
+  if (data["모듈"] || data["트랙"]) {
+    // 간호학과인 경우: 모듈 상세 블록은 숨기고 이수증 상태만 별도 표시
+    if (data["전공명"] === '간호학과' && data["모듈"]) {
+      const t = data["모듈"];
+      if (t["이수증발급가능"] !== undefined) {
+        html += `
+          <div class="result-item track-item">
+            <b>원주간호대학장 명의 이수증</b>
+            &nbsp;${t["이수증발급가능"] ? '<span class="success">발급 가능</span>' : '<span class="fail">미발급</span>'}
+            <br><div style="font-size:13px; color:var(--muted); margin-top:6px;">${t["이수증메시지"] || ''}</div>
+          </div>
+        `;
+      }
+    } else {
+      const kind = data["모듈"] ? '모듈' : '트랙';
+      const t = data[kind];
+      const selKey = kind === '모듈' ? '선택모듈' : '선택트랙';
+      const reqKey = `${kind}필수`;
+      html += `
+        <div class="result-item track-item">
+          <b>${kind}: ${t[selKey] || ''}</b>
+          &nbsp;${t["충족"] ? '<span class="success">충족</span>' : '<span class="fail">미충족</span>'}
+          <br><span style="font-size:13px; color:var(--muted);">${t["설명"]}</span>
+          <br><br><b>${kind} 필수</b>
+          &nbsp;${t[reqKey]["충족"] ? '<span class="success">충족</span>' : '<span class="fail">미충족</span>'}
+          <br>미이수:
+          <div class="tag-list">
+            ${t[reqKey]["미이수"].length > 0
+              ? t[reqKey]["미이수"].map(c => `<span class="tag missing">✗ ${c}</span>`).join("")
+              : '<span style="color:var(--muted)">없음</span>'}
+          </div>
+          <br><b>${kind} 총 이수학점</b>: ${t["총이수학점"]} / ${t["필요최소학점"]} 학점
+          <div class="progress-bar-wrap">
+            <div class="progress-bar" style="width:${Math.min(100, Math.round((t["총이수학점"] / t["필요최소학점"]) * 100))}%"></div>
+          </div>
+        </div>
+      `;
+      // 간호학과 전용: 이수증도 표기 (트랙 블록과 함께)
+      if (t && t["이수증발급가능"] !== undefined) {
+        html += `
+          <div style="margin-top:10px; padding:12px; border-radius:12px; background:rgba(255,255,255,0.6);">
+            <b>원주간호대학장 명의 이수증</b>
+            &nbsp;${t["이수증발급가능"] ? '<span class="success">발급 가능</span>' : '<span class="fail">미발급</span>'}
+            <div style="font-size:13px; color:var(--muted); margin-top:6px;">${t["이수증메시지"] || ''}</div>
+          </div>
+        `;
+      }
+    }
   }
 
   html += `
